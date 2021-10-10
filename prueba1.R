@@ -343,7 +343,7 @@ summary(modelos4)
 modelos5=auto.arima(deficitsolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
 modelos5
 summary(modelos5)
-modelos6=auto.arima(deficitsolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos6=auto.arima(masamonetariasola.ts, seasonal=FALSE) ####otra manera de hacerlooooo
 modelos6
 summary(modelos6)
 #ar=autoregresivos, ma1=media movil
@@ -447,11 +447,9 @@ nsdiffs(tipodecambiosolo.ts) #orden 0
 nsdiffs(deficitsolo.ts) #orden 1
 nsdiffs(masamonetariasola.ts) #orden 1
 
+#inflacion
 acf(inflacionsola) #autocorrelacion
 pacf(inflacionsola) #orden de las medias moviles
-
-
-
 modelosarima1=auto.arima(inflacionsola.ts,stepwise = FALSE,approximation = FALSE)
 summary(modelosarima1) ###propuesta 
 residuals=resid(modelosarima1)
@@ -461,7 +459,6 @@ forecast(modelosarima1,h=10)
 autoplot(acf(modelosarima1$residuals, plot = FALSE))
 autoplot(pacf(modelosarima1$residuals, plot = FALSE))
 ggseasonplot(inflacionsola.ts,main="plot sarima ")
-ggtsdiag(modelosarima1)
 tsdiag(modelosarima1)
 #Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
 #Realizamos el contraste de hipótesis:
@@ -479,7 +476,165 @@ normalidad <-shapiro.test(modelosarima1$residuals)    # Test de Shapiro-Wilk
 normalidad$p.value  
 #p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
 #Por lo tanto, damos el modelo por VÁLIDO
-
 prediccion123 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion123)
 
+#SALARIO
+acf(salariosolo) #autocorrelacion
+pacf(salariosolo) #orden de las medias moviles
+modelosarima12=auto.arima(salariosolo.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima12) ###propuesta 
+residuals=resid(modelosarima12)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima12)
+forecast(modelosarima12,h=10)
+autoplot(acf(modelosarima12$residuals, plot = FALSE))
+autoplot(pacf(modelosarima12$residuals, plot = FALSE))
+ggseasonplot(salariosolo.ts,main="plot sarima ")
+tsdiag(modelosarima12)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia12 <- Box.test(modelosarima12$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia12$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima12$residuals)
+qqline(modelosarima12$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad12 <-shapiro.test(modelosarima12$residuals)    # Test de Shapiro-Wilk
+normalidad12$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion12312 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion12312)
+
+###gasto
+acf(gastosolo) #autocorrelacion
+pacf(gastosolo) #orden de las medias moviles
+modelosarima2=auto.arima(gastosolo.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima2) ###propuesta 
+residuals=resid(modelosarima2)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima2)
+forecast(modelosarima2,h=10)
+autoplot(acf(modelosarima2$residuals, plot = FALSE))
+autoplot(pacf(modelosarima2$residuals, plot = FALSE))
+ggseasonplot(gastosolo.ts,main="plot sarima ")
+tsdiag(modelosarima2)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia2 <- Box.test(modelosarima2$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia2$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima2$residuals)
+qqline(modelosarima2$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad2 <-shapiro.test(modelosarima2$residuals)    # Test de Shapiro-Wilk
+normalidad2$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion1234 <- forecast(modelosarima2, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion1234)
+
+##tipo
+acf(tipodecambiosolo) #autocorrelacion
+pacf(tipodecambiosolo) #orden de las medias moviles
+modelosarima3=auto.arima(tipodecambiosolo.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima3) ###propuesta 
+residuals=resid(modelosarima3)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima3)
+forecast(modelosarima3,h=10)
+autoplot(acf(modelosarima3$residuals, plot = FALSE))
+autoplot(pacf(modelosarima3$residuals, plot = FALSE))
+ggseasonplot(tipodecambiosolo.ts,main="plot sarima ")
+tsdiag(modelosarima3)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia3 <- Box.test(modelosarima3$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia3$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima3$residuals)
+qqline(modelosarima3$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad3 <-shapiro.test(modelosarima3$residuals)    # Test de Shapiro-Wilk
+normalidad3$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion12345 <- forecast(modelosarima3, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion12345)
+
+###deficit
+acf(deficitsolo) #autocorrelacion
+pacf(deficitsolo) #orden de las medias moviles
+modelosarima4=auto.arima(deficitsolo.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima4) ###propuesta 
+residuals=resid(modelosarima4)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima4)
+forecast(modelosarima4,h=10)
+autoplot(acf(modelosarima4$residuals, plot = FALSE))
+autoplot(pacf(modelosarima4$residuals, plot = FALSE))
+ggseasonplot(tipodecambiosolo.ts,main="plot sarima ")
+tsdiag(modelosarima4)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia4 <- Box.test(modelosarima4$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia4$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima4$residuals)
+qqline(modelosarima4$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad4 <-shapiro.test(modelosarima4$residuals)    # Test de Shapiro-Wilk
+normalidad4$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion123456 <- forecast(modelosarima4, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion123456)
+
+##masa monetaria
+acf(masamonetariasola) #autocorrelacion
+pacf(masamonetariasola) #orden de las medias moviles
+modelosarima5=auto.arima(masamonetariasola.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima5) ###propuesta 
+residuals=resid(modelosarima5)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima5)
+forecast(modelosarima5,h=10)
+autoplot(acf(modelosarima5$residuals, plot = FALSE))
+autoplot(pacf(modelosarima5$residuals, plot = FALSE))
+ggseasonplot(masamonetariasola.ts,main="plot sarima ")
+tsdiag(modelosarima5)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia5 <- Box.test(modelosarima5$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia5$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima5$residuals)
+qqline(modelosarima5$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad5 <-shapiro.test(modelosarima1$residuals)    # Test de Shapiro-Wilk
+normalidad5$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion123 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion1234567)
