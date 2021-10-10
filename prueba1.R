@@ -574,6 +574,7 @@ normalidad3$p.value
 #Por lo tanto, damos el modelo por VÁLIDO
 prediccion12345 <- forecast(modelosarima3, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion12345)
+##############OJO DE RECTA
 
 ###deficit
 acf(deficitsolo) #autocorrelacion
@@ -638,3 +639,11 @@ normalidad5$p.value
 #Por lo tanto, damos el modelo por VÁLIDO
 prediccion123 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion1234567)
+
+
+
+##############Se debe eliminar el componente estacio-nal de las series. Debido a que se está 
+#trabajando con datos mensuales, es muy probable que exis-ta un comportamiento repetitivo de 
+#las series en ciertos meses, esto genera un problema en la es-timación, por lo que es necesario 
+#aislar este com-ponente.  Existen  diversos  métodos,  uno  de  los  más conocidos es el método 
+#de promedio móvil
