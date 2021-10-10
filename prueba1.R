@@ -34,6 +34,7 @@ install.packages("timsac")
 install.packages("mFilter")
 install.packages("dynlm")
 install.packages("nlme")
+install.packages("fpp2")
 library(tseries)
 library(astsa)
 library(forecast)
@@ -48,6 +49,7 @@ library(timsac)
 library(mFilter)
 library(dynlm)
 library(readxl)
+library(fpp2)
 #prueba dickey-fuller para una raiz unitaria
 #para saber si es estacionaria o no
 #es importante que exista estacionariedad en la serie 
@@ -77,6 +79,7 @@ tipodecambiosolo.ts=ts(tipodecambiosolo,start=c(2000,1) , freq=12 )
 deficitsolo.ts=ts(deficitsolo,start=c(2000,1) , freq=12 )
 masamonetariasola.ts=ts(masamonetariasola,start=c(2000,1) , freq=12 )
 #cuantas diferencias necesito para volverlas estacionarias en series de tiempo, diferencias o logaritmos
+#diferenciaciones regulares
 ndiffs(econometriatabla.ts)
 ndiffs(inflacionsola.ts)
 ndiffs(salariosolo.ts)
@@ -145,15 +148,13 @@ acf(tipodecambiosolo.ts) #va disminuyendo, no estacionaria
 acf(deficitsolo.ts) #altibajos
 acf(masamonetariasola.ts) #va disminuyendo, no estacionaria
 
-#ver cuantas diferencias hay que hacer "LO MISMO QUE ARRIBA"
-ndiffs(econometriatabla.ts)
-ndiffs(inflacionsola.ts)
-ndiffs(salariosolo.ts)
-ndiffs(gastosolo.ts)
-ndiffs(tipodecambiosolo.ts)
-ndiffs(deficitsolo.ts)
-ndiffs(masamonetariasola.ts)
-
+#adf.test(econometriatabla2,alternative = "stationary")
+adf.test(inflacionsola,alternative = "stationary")
+adf.test(salariosolo,alternative = "stationary")
+adf.test(gastosolo,alternative = "stationary")
+adf.test(tipodecambiosolo,alternative = "stationary")
+adf.test(deficitsolo,alternative = "stationary")
+adf.test(masamonetariasola,alternative = "stationary")
 
 #convertir a estacionarias
 #diferencias hasta convertirla
@@ -251,7 +252,7 @@ acf(masamonetariasola.ts,main="Serie no estacionaria")
 plot(seriediferenciamasamonetaria2)
 acf(seriediferenciamasamonetaria2,main="Serie estacionaria")
 
-###test dickey-fuller
+###test dickey-fuller##################################
 ###adf.test(seriediferenciadaeconometriatabla2,alternative = "stationary")
 #si el p es mayor a 0.5 no es estacionaria
 adf.test(seriediferenciadainflacion,alternative = "stationary")
@@ -431,6 +432,54 @@ plot(pronostico7)
 
 ##################### con sarima nuestro modelo podría mejorar "extensión de modelos arimas"
 # volver a comprobar la estacionariedad pero esta vez mediante el test de KPSS (Kwiatkowski-Phillips-Schmidt-Shin).
+#### (PDQ)m "m=periodo de tiempo mensual", el resto en estacional
 
 
+#ver cuantas diferencias hay que hacer "LO MISMO QUE ARRIBA"
+#diferenciaciones regulares
+####sarima va con s
+#n por componente estacional
+#nsdiffs(econometriatabla.ts) #orden 0 "OJO"
+nsdiffs(inflacionsola.ts) #orden 0
+nsdiffs(salariosolo.ts) #orden 1
+nsdiffs(gastosolo.ts) #orden 1
+nsdiffs(tipodecambiosolo.ts) #orden 0
+nsdiffs(deficitsolo.ts) #orden 1
+nsdiffs(masamonetariasola.ts) #orden 1
+
+acf(inflacionsola) #autocorrelacion
+pacf(inflacionsola) #orden de las medias moviles
+
+
+
+modelosarima1=auto.arima(inflacionsola.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima1) ###propuesta 
+residuals=resid(modelosarima1)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima1)
+forecast(modelosarima1,h=10)
+autoplot(acf(modelosarima1$residuals, plot = FALSE))
+autoplot(pacf(modelosarima1$residuals, plot = FALSE))
+ggseasonplot(inflacionsola.ts,main="plot sarima ")
+ggtsdiag(modelosarima1)
+tsdiag(modelosarima1)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia <- Box.test(modelosarima1$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima1$residuals)
+qqline(modelosarima1$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad <-shapiro.test(modelosarima1$residuals)    # Test de Shapiro-Wilk
+normalidad$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+
+prediccion123 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion123)
 
