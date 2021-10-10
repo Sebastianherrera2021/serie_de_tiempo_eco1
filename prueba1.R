@@ -311,6 +311,9 @@ pacf(ts(seriediferenciamasamonetaria2,frequency = 1))
 
 
 
+
+#########################Lo que sigue está sin reajustar nuevamente
+
 #1-forma de hacerlo
 ###consisite en probar con varios modelos
 modelo1=arima(inflacionsola.ts,order = c(2,1,0)) ###modelo de serie de tiempo orginal, no el 2
@@ -327,27 +330,107 @@ tsdiag(modelo1) #diagnostico
 modelos=auto.arima(inflacionsola.ts, seasonal=FALSE) ####otra manera de hacerlooooo
 modelos
 summary(modelos)
+modelos2=auto.arima(salariosolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos2
+summary(modelos2)
+modelos3=auto.arima(gastosolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos3
+summary(modelos3)
+modelos4=auto.arima(tipodecambiosolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos4
+summary(modelos4)
+modelos5=auto.arima(deficitsolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos5
+summary(modelos5)
+modelos6=auto.arima(deficitsolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos6
+summary(modelos6)
+#ar=autoregresivos, ma1=media movil
+#abajo los errores
 #Usando la notación ARIMA presentada anteriormente, el modelo ajustado se puede escribir como:
 #Y^dt=0.5471Yt???1???0.0649Yt???2+E
 #donde E es un error y la serie original se diferencia con la orden 1.
 tsdiag(modelos) #diagnostico para saber si el modelo es bueno
+tsdiag(modelos2) #diagnostico para saber si el modelo es bueno pero no se que tan bueno
+tsdiag(modelos3) #diagnostico para saber si el modelo es bueno
+tsdiag(modelos4) #diagnostico para saber si el modelo es bueno
+tsdiag(modelos5) #diagnostico para saber si el modelo es bueno
+tsdiag(modelos6) #diagnostico para saber si el modelo es bueno
+
 #errores estandarizados deben pareserse al ruido blanco
 #valores p del estadistico de Ljung-Box, ver si hay o no ruido blanco
 #linea azul; p=0.05, son mayores "modelo se ajusta bien
 #h0:ruido clanco >0.05, h1:no hay ruido blanco<0.05
 #####OJO= Ruido blanco significa que el error: media igual a cero, varianza constante, no estar serialmente correlacionada
 
-#3 forma de hacerlo
-arima1 <- Arima(seriediferenciadainflacion, order = c(0,2,1))
-arima2 <- Arima(seriediferenciadainflacion, order = c(0,2,2))
-arima3 <- Arima(seriediferenciadainflacion, order = c(1,2,0))
-arima4 <- Arima(seriediferenciadainflacion, order = c(2,2,0))
+
+#comprobarlo con el estadistico:
+Box.test(residuals(modelos),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error=residuals(modelos)
+plot(error)
+
+Box.test(residuals(modelos2),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error2=residuals(modelos2)
+plot(error2)
+
+Box.test(residuals(modelos3),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error3=residuals(modelos3)
+plot(error3)
+
+Box.test(residuals(modelos4),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error4=residuals(modelos4)
+plot(error4)
+
+Box.test(residuals(modelos5),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error5=residuals(modelos5)
+plot(error5)
+
+Box.test(residuals(modelos6),type = "Ljung-Box")
+#p mayor a 0.5 existe ruido blanco
+error6=residuals(modelos6)
+plot(error6)
 
 
 
+###ahora lo que se hace es pronosticar, "si el modelo es bueno"
+pronostico<-forecast::forecast(modelos,h=10) ##10 meses más
+pronostico
+plot(pronostico)
+
+pronostico2<-forecast::forecast(modelos2,h=10) ##10 meses más
+pronostico2
+plot(pronostico2)
+
+pronostico3<-forecast::forecast(modelos3,h=10) ##10 meses más
+pronostico3
+plot(pronostico3)
+
+pronostico4<-forecast::forecast(modelos4,h=10) ##10 meses más
+pronostico4
+plot(pronostico4)
+
+pronostico5<-forecast::forecast(modelos5,h=10) ##10 meses más
+pronostico5
+plot(pronostico5)
+
+pronostico6<-forecast::forecast(modelos6,h=10) ##10 meses más
+pronostico6
+plot(pronostico6)
+
+pronostico7<-forecast::forecast(modelos,h=10) ##10 meses más
+pronostico7
+plot(pronostico7)
+
+###modelo salario es malo creo
 
 
+##################### con sarima nuestro modelo podría mejorar "extensión de modelos arimas"
+# volver a comprobar la estacionariedad pero esta vez mediante el test de KPSS (Kwiatkowski-Phillips-Schmidt-Shin).
 
-#ar=autoregresivos, ma1=media movil
-#abajo los errores
+
 
