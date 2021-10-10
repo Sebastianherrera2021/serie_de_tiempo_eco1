@@ -1,23 +1,3 @@
-#####replica serie de tiempo covid Rangel
-library(readxl)
-library(tidyverse)
-library(lubridate)
-library(readxl)
-econometriatabla2 <- read_excel("C:/Users/Usuario/Downloads/econometriatabla2.xlsx")
-View(econometriatabla2)
-attach(econometriatabla2)
-colnames(econometriatabla2)=c("inflacion","Salario nominal","Gasto publico","Tipo de cambio real","Deficit o superavit fiscal","Masa monetaria (M1)")
-names(econometriatabla2)
-
-##como serie de tiempo
-#no es linea recta, exponencial,
-inflacion.ts=ts(econometriatabla2,start=c(2000,1) , freq=12 )
-inflacion.ts
-plot(inflacion.ts)
-summary(econometriatabla2)
-
-
-
 ######series de tiempo######
 ###arima
 install.packages("tseries")
@@ -50,6 +30,7 @@ library(mFilter)
 library(dynlm)
 library(readxl)
 library(fpp2)
+library(zoo)
 #prueba dickey-fuller para una raiz unitaria
 #para saber si es estacionaria o no
 #es importante que exista estacionariedad en la serie 
@@ -69,7 +50,6 @@ tipodecambiosolo=c(`Tipo de cambio real`)
 deficitsolo=c(`Deficit o superavit fiscal`)
 masamonetariasola=c(`Masa monetaria (M1)`)
 
-
 #convertir mi base de datos a una de serie de tiempo en conjunto e individuales
 econometriatabla.ts=ts(econometriatabla2,start=c(2000,1) , freq=12 ) #general
 inflacionsola.ts=ts(inflacionsola,start=c(2000,1) , freq=12 )
@@ -78,6 +58,7 @@ gastosolo.ts=ts(gastosolo,start=c(2000,1) , freq=12 )
 tipodecambiosolo.ts=ts(tipodecambiosolo,start=c(2000,1) , freq=12 )
 deficitsolo.ts=ts(deficitsolo,start=c(2000,1) , freq=12 )
 masamonetariasola.ts=ts(masamonetariasola,start=c(2000,1) , freq=12 )
+
 #cuantas diferencias necesito para volverlas estacionarias en series de tiempo, diferencias o logaritmos
 #diferenciaciones regulares
 ndiffs(econometriatabla.ts)
@@ -114,7 +95,7 @@ plot(tipodecambiosolo.ts,main="tipo de cambio Enero 2000-Diciembre 2020")
 plot(deficitsolo.ts,main="Deficit o superavit fiscal Enero 2000-Diciembre 2020")
 plot(masamonetariasola.ts,main="Masa monetaria Enero 2000-Diciembre 2020")
 
-#resumen datos
+#resumen datos originales SIN ESTAR EN SERIE DE TIEMPO
 summary(econometriatabla2) #podria servir solo esta
 summary(inflacion)
 summary(salariosolo)
@@ -133,13 +114,11 @@ seasonplot(tipodecambiosolo.ts,col=rainbow(12),year.labels = TRUE)
 seasonplot(deficitsolo.ts,col=rainbow(12),year.labels = TRUE)
 seasonplot(masamonetariasola.ts,col=rainbow(12),year.labels = TRUE)
 
-
-
 #AUTOCORRELACIÓN
 #para que una serie de tiempo sea estacionaria se requiere que la media
 #y la varianza sean constantes a lo largo del tiempo
 
-##GRAFICAS AUTOCORRELACIÓN
+##GRAFICAS AUTOCORRELACIÓN "lineas"
 acf(econometriatabla.ts) #en esta relaciona todas, solo escogeriamos la primera fila, y la primera grafica de la segunda fila
 acf(inflacionsola.ts)
 acf(salariosolo.ts) #va disminuyendo lentamente, no estacionaria
@@ -149,12 +128,13 @@ acf(deficitsolo.ts) #altibajos
 acf(masamonetariasola.ts) #va disminuyendo, no estacionaria
 
 #adf.test(econometriatabla2,alternative = "stationary")
-adf.test(inflacionsola,alternative = "stationary")
-adf.test(salariosolo,alternative = "stationary")
-adf.test(gastosolo,alternative = "stationary")
-adf.test(tipodecambiosolo,alternative = "stationary")
-adf.test(deficitsolo,alternative = "stationary")
-adf.test(masamonetariasola,alternative = "stationary")
+#si el p es mayor a 0.5 no es estacionaria, dickey fuller antes
+adf.test(inflacionsola,alternative = "stationary")#no requeriria
+adf.test(salariosolo,alternative = "stationary")#si requeriria
+adf.test(gastosolo,alternative = "stationary") #no requeriria
+adf.test(tipodecambiosolo,alternative = "stationary") #si requeriria
+adf.test(deficitsolo,alternative = "stationary") #no requeriria
+adf.test(masamonetariasola,alternative = "stationary") #si requeriria
 
 #convertir a estacionarias
 #diferencias hasta convertirla
@@ -175,7 +155,7 @@ plot(seriediferenciadeficit)
 seriediferenciamasamonetaria=diff(masamonetariasola.ts)
 plot(seriediferenciamasamonetaria)
 
-###Autocorrelación pero con serie estacionaria
+###Autocorrelación pero con serie estacionaria "lineas"
 acf(seriediferenciadaeconometriatabla)
 acf(seriediferenciadainflacion)
 acf(seriediferenciadasalario)
@@ -196,7 +176,7 @@ ndiffs(seriediferenciadeficit)
 ndiffs(seriediferenciamasamonetaria)
 
 #otra diferencia, falta la otra de masa monetaria y al parecer tambien de la general
-
+#serie diferenciada y además relaciona la inflación con cada variable exogena
 seriediferenciadaeconometriatabla2=diff(econometriatabla.ts,differences=2)
 plot(seriediferenciadaeconometriatabla2)
 acf(seriediferenciadaeconometriatabla2)
@@ -209,7 +189,8 @@ ndiffs(seriediferenciamasamonetaria2)
 
 ####Analisis visual de las graficas autocorrelación
 #general
-#par(mfrow=c(2,2),mar=c(4,4,4,1)+ .1)
+#muestra 4 iconos, graficas y autorrelaciones "lineas", tanto no estacionarias como estacionarias
+#par(mfrow=c(2,36),mar=c(4,4,4,1)+ .1)
 #plot(econometriatabla.ts, ylab="Determinantes inflación")
 #acf(econometriatabla.ts,main="Serie no estacionaria")
 #plot(seriediferenciadaeconometriatabla2)
@@ -252,8 +233,8 @@ acf(masamonetariasola.ts,main="Serie no estacionaria")
 plot(seriediferenciamasamonetaria2)
 acf(seriediferenciamasamonetaria2,main="Serie estacionaria")
 
-###test dickey-fuller##################################
-###adf.test(seriediferenciadaeconometriatabla2,alternative = "stationary")
+###test dickey-fuller despues de haberlas vuelto estacionarias ##################################
+#adf.test(seriediferenciadaeconometriatabla2,alternative = "stationary")
 #si el p es mayor a 0.5 no es estacionaria
 adf.test(seriediferenciadainflacion,alternative = "stationary")
 adf.test(seriediferenciadasalario,alternative = "stationary")
@@ -264,15 +245,15 @@ adf.test(seriediferenciamasamonetaria2,alternative = "stationary")
 ##h0=no es estacionario >0.05
 ##h1=es estacionario <0.05
 #Rechazamos H0, la serie temporal es estacionaria
+####Las volvió todas 0.01 "Incluso menor"
 
-
-###Ahora si se puede hacer el arima
+###Ahora si se puede hacer el arima "autocorrelación y autocorrelación parcial"
 par(mfrow=c(2,1),mar=c(4,4,4,1)+ .1)
 acf(seriediferenciadainflacion) #autocorrelacion, numero de medias moviles "en este caso los que se salen de los puntos azules"
 pacf(seriediferenciadainflacion) #autocorrelacion parcial = #autoregresivos
 acf(ts(seriediferenciadainflacion,frequency = 1)) ##para que el resago coincida con las frecuencias, cambia el eje x
 pacf(ts(seriediferenciadainflacion,frequency = 1))
-#7 MEDIAS MOVILES,5AUTOREGRESIVOS, 1 DIFERENCIA
+#7 MEDIAS MOVILES,5AUTOREGRESIVOS, 1 DIFERENCIA A OJO CON EL AUTOMATICO DA OTRA VUELTA
 #orden es autoregresivo, diferencias y media movil
 
 par(mfrow=c(2,1),mar=c(4,4,4,1)+ .1)
@@ -309,18 +290,14 @@ pacf(ts(seriediferenciamasamonetaria2,frequency = 1))
 #####Hasta acá voy bien
 ###De acá para abajo dudas
 ###### DUDA DE COMO CALCULARLO MAS EFICIENTEMENTE
-
-
-
-
-#########################Lo que sigue está sin reajustar nuevamente
-
-#1-forma de hacerlo
+######################### Lo que sigue está sin reajustar nuevamente ############
+############################CREACIÓN DE MODELOS###################
+#1-forma de hacerlo "A OJO"
 ###consisite en probar con varios modelos
+#7 MEDIAS MOVILES,5AUTOREGRESIVOS, 1 DIFERENCIA A OJO CON EL AUTOMATICO DA OTRA VUELTA
 modelo1=arima(inflacionsola.ts,order = c(2,1,0)) ###modelo de serie de tiempo orginal, no el 2
 modelo1
 tsdiag(modelo1) #diagnostico
-
 
 
 ####2- forma de hacerlo
@@ -329,6 +306,7 @@ tsdiag(modelo1) #diagnostico
 #con series temporales, debido a que evalúa entre todos los posibles modelos, al mejor modelo considerando 
 #diversos criterios: estacionariedad, estacionalidad, diferencias, entre otras.
 modelos=auto.arima(inflacionsola.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+#INFLACIONSOLA.TS ó seriediferenciadainflacion cualquiera sirve, lo que cambia está en las "diferencias"
 modelos
 summary(modelos)
 modelos2=auto.arima(salariosolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
@@ -351,23 +329,31 @@ summary(modelos6)
 #Usando la notación ARIMA presentada anteriormente, el modelo ajustado se puede escribir como:
 #Y^dt=0.5471Yt???1???0.0649Yt???2+E
 #donde E es un error y la serie original se diferencia con la orden 1.
+
+#La diagnosis del modelo estimado
 tsdiag(modelos) #diagnostico para saber si el modelo es bueno
-tsdiag(modelos2) #diagnostico para saber si el modelo es bueno pero no se que tan bueno
+tsdiag(modelos2) #diagnostico para saber si el modelo es bueno TIENE SOLO UNO POR DEBAJO
 tsdiag(modelos3) #diagnostico para saber si el modelo es bueno
 tsdiag(modelos4) #diagnostico para saber si el modelo es bueno
-tsdiag(modelos5) #diagnostico para saber si el modelo es bueno
-tsdiag(modelos6) #diagnostico para saber si el modelo es bueno
+tsdiag(modelos5) #diagnostico para saber si el modelo es bueno, REGULAR, INCLUSO MAS PAILAS QUE EL GASTO 5 POR DEBAJO DE 0.05
+tsdiag(modelos6) #diagnostico para saber si el modelo es bueno, IGUAL DE IRREGULAR AL LIMITE, 1 SOLO POR DEBAJO
 
 #errores estandarizados deben pareserse al ruido blanco
 #valores p del estadistico de Ljung-Box, ver si hay o no ruido blanco
 #linea azul; p=0.05, son mayores "modelo se ajusta bien
 #h0:ruido clanco >0.05, h1:no hay ruido blanco<0.05
 #####OJO= Ruido blanco significa que el error: media igual a cero, varianza constante, no estar serialmente correlacionada
+#la creación de objetos de clase ts() requiere que las observaciones estén distribuidas de modo regular a lo largo del tiempo. En caso de que no sea así, podemos utilizar objetos de la clase zoo
+#no se que tan necesaria sea
 
 
-#comprobarlo con el estadistico:
+
+#comprobarlo con el estadistico: BOX.TEST=prueba general de independencia 
+#Si el valor p es mayor que el nivel de significancia, usted puede concluir que los residuos son 
+#independientes y que el modelo cumple con el supuesto.
+##el modelo se ajusta a los datos, se puede concluir bien 
 Box.test(residuals(modelos),type = "Ljung-Box")
-#p mayor a 0.5 existe ruido blanco
+#p mayor a 0.05 existe ruido blanco
 error=residuals(modelos)
 plot(error)
 
@@ -399,41 +385,41 @@ plot(error6)
 
 
 ###ahora lo que se hace es pronosticar, "si el modelo es bueno"
-pronostico<-forecast::forecast(modelos,h=10) ##10 meses más
+pronostico<-forecast::forecast(modelos,h=36) ##10 meses más
 pronostico
 plot(pronostico)
 
-pronostico2<-forecast::forecast(modelos2,h=10) ##10 meses más
+pronostico2<-forecast::forecast(modelos2,h=36) ##10 meses más
 pronostico2
 plot(pronostico2)
 
-pronostico3<-forecast::forecast(modelos3,h=10) ##10 meses más
+pronostico3<-forecast::forecast(modelos3,h=36) ##10 meses más
 pronostico3
 plot(pronostico3)
 
-pronostico4<-forecast::forecast(modelos4,h=10) ##10 meses más
+pronostico4<-forecast::forecast(modelos4,h=36) ##10 meses más
 pronostico4
 plot(pronostico4)
 
-pronostico5<-forecast::forecast(modelos5,h=10) ##10 meses más
+pronostico5<-forecast::forecast(modelos5,h=36) ##10 meses más
 pronostico5
 plot(pronostico5)
 
-pronostico6<-forecast::forecast(modelos6,h=10) ##10 meses más
+pronostico6<-forecast::forecast(modelos6,h=36) ##10 meses más
 pronostico6
 plot(pronostico6)
 
-pronostico7<-forecast::forecast(modelos,h=10) ##10 meses más
+pronostico7<-forecast::forecast(modelos,h=36) ##10 meses más
 pronostico7
 plot(pronostico7)
-
 ###modelo salario es malo creo
+
+
 
 
 ##################### con sarima nuestro modelo podría mejorar "extensión de modelos arimas"
 # volver a comprobar la estacionariedad pero esta vez mediante el test de KPSS (Kwiatkowski-Phillips-Schmidt-Shin).
 #### (PDQ)m "m=periodo de tiempo mensual", el resto en estacional
-
 
 #ver cuantas diferencias hay que hacer "LO MISMO QUE ARRIBA"
 #diferenciaciones regulares
@@ -482,39 +468,7 @@ autoplot(prediccion123)
 #SALARIO
 acf(salariosolo) #autocorrelacion
 pacf(salariosolo) #orden de las medias moviles
-modelosarima12=auto.arima(salariosolo.ts,stepwise = FALSE,approximation = FALSE)
-summary(modelosarima12) ###propuesta 
-residuals=resid(modelosarima12)
-adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
-coeftest(modelosarima12)
-forecast(modelosarima12,h=10)
-autoplot(acf(modelosarima12$residuals, plot = FALSE))
-autoplot(pacf(modelosarima12$residuals, plot = FALSE))
-ggseasonplot(salariosolo.ts,main="plot sarima ")
-tsdiag(modelosarima12)
-#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
-#Realizamos el contraste de hipótesis:
-#H0: Los datos se distribuyen de forma independiente
-#H1: Los datos no se distribuyen de forma independiente
-independencia12 <- Box.test(modelosarima12$residuals, type="Ljung-Box") # Test de Ljung-Box
-independencia12$p.value
-#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
-qqnorm(modelosarima12$residuals)
-qqline(modelosarima12$residuals) 
-#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
-#H0:  Los datos se distribuyen normalmente
-#H1: Los datos no se distribuyen normalmente
-normalidad12 <-shapiro.test(modelosarima12$residuals)    # Test de Shapiro-Wilk
-normalidad12$p.value  
-#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
-#Por lo tanto, damos el modelo por VÁLIDO
-prediccion12312 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
-autoplot(prediccion12312)
-
-###gasto
-acf(gastosolo) #autocorrelacion
-pacf(gastosolo) #orden de las medias moviles
-modelosarima2=auto.arima(gastosolo.ts,stepwise = FALSE,approximation = FALSE)
+modelosarima2=auto.arima(salariosolo.ts,stepwise = FALSE,approximation = FALSE)
 summary(modelosarima2) ###propuesta 
 residuals=resid(modelosarima2)
 adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
@@ -522,7 +476,7 @@ coeftest(modelosarima2)
 forecast(modelosarima2,h=10)
 autoplot(acf(modelosarima2$residuals, plot = FALSE))
 autoplot(pacf(modelosarima2$residuals, plot = FALSE))
-ggseasonplot(gastosolo.ts,main="plot sarima ")
+ggseasonplot(salariosolo.ts,main="plot sarima ")
 tsdiag(modelosarima2)
 #Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
 #Realizamos el contraste de hipótesis:
@@ -543,10 +497,10 @@ normalidad2$p.value
 prediccion1234 <- forecast(modelosarima2, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion1234)
 
-##tipo
-acf(tipodecambiosolo) #autocorrelacion
-pacf(tipodecambiosolo) #orden de las medias moviles
-modelosarima3=auto.arima(tipodecambiosolo.ts,stepwise = FALSE,approximation = FALSE)
+#Gasto
+acf(gastosolo) #autocorrelacion
+pacf(gastosolo) #orden de las medias moviles
+modelosarima3=auto.arima(gastosolo.ts,stepwise = FALSE,approximation = FALSE)
 summary(modelosarima3) ###propuesta 
 residuals=resid(modelosarima3)
 adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
@@ -554,7 +508,7 @@ coeftest(modelosarima3)
 forecast(modelosarima3,h=10)
 autoplot(acf(modelosarima3$residuals, plot = FALSE))
 autoplot(pacf(modelosarima3$residuals, plot = FALSE))
-ggseasonplot(tipodecambiosolo.ts,main="plot sarima ")
+ggseasonplot(gastosolo.ts,main="plot sarima ")
 tsdiag(modelosarima3)
 #Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
 #Realizamos el contraste de hipótesis:
@@ -574,12 +528,11 @@ normalidad3$p.value
 #Por lo tanto, damos el modelo por VÁLIDO
 prediccion12345 <- forecast(modelosarima3, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion12345)
-##############OJO DE RECTA
 
-###deficit
-acf(deficitsolo) #autocorrelacion
-pacf(deficitsolo) #orden de las medias moviles
-modelosarima4=auto.arima(deficitsolo.ts,stepwise = FALSE,approximation = FALSE)
+#tipo de cambio
+acf(tipodecambiosolo) #autocorrelacion
+pacf(tipodecambiosolo) #orden de las medias moviles
+modelosarima4=auto.arima(tipodecambiosolo.ts,stepwise = FALSE,approximation = FALSE)
 summary(modelosarima4) ###propuesta 
 residuals=resid(modelosarima4)
 adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
@@ -605,13 +558,14 @@ normalidad4 <-shapiro.test(modelosarima4$residuals)    # Test de Shapiro-Wilk
 normalidad4$p.value  
 #p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
 #Por lo tanto, damos el modelo por VÁLIDO
-prediccion123456 <- forecast(modelosarima4, h=36) #nivel confianza 95%, h = periodos
-autoplot(prediccion123456)
+prediccion12345 <- forecast(modelosarima4, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion12345)
+###########################DUDA PREGUNTAR A RANGEL##############
 
-##masa monetaria
-acf(masamonetariasola) #autocorrelacion
-pacf(masamonetariasola) #orden de las medias moviles
-modelosarima5=auto.arima(masamonetariasola.ts,stepwise = FALSE,approximation = FALSE)
+#DEFICIT
+acf(deficitsolo) #autocorrelacion
+pacf(deficitsolo) #orden de las medias moviles
+modelosarima5=auto.arima(deficitsolo.ts,stepwise = FALSE,approximation = FALSE)
 summary(modelosarima5) ###propuesta 
 residuals=resid(modelosarima5)
 adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
@@ -619,7 +573,7 @@ coeftest(modelosarima5)
 forecast(modelosarima5,h=10)
 autoplot(acf(modelosarima5$residuals, plot = FALSE))
 autoplot(pacf(modelosarima5$residuals, plot = FALSE))
-ggseasonplot(masamonetariasola.ts,main="plot sarima ")
+ggseasonplot(deficitsolo.ts,main="plot sarima ")
 tsdiag(modelosarima5)
 #Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
 #Realizamos el contraste de hipótesis:
@@ -633,17 +587,56 @@ qqline(modelosarima5$residuals)
 #Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
 #H0:  Los datos se distribuyen normalmente
 #H1: Los datos no se distribuyen normalmente
-normalidad5 <-shapiro.test(modelosarima1$residuals)    # Test de Shapiro-Wilk
+normalidad5 <-shapiro.test(modelosarima5$residuals)    # Test de Shapiro-Wilk
 normalidad5$p.value  
 #p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
 #Por lo tanto, damos el modelo por VÁLIDO
-prediccion123 <- forecast(modelosarima1, h=36) #nivel confianza 95%, h = periodos
+prediccion123456 <- forecast(modelosarima3, h=36) #nivel confianza 95%, h = periodos
+autoplot(prediccion123456)
+
+##masa monetaria
+acf(masamonetariasola) #autocorrelacion
+pacf(masamonetariasola) #orden de las medias moviles
+modelosarima6=auto.arima(masamonetariasola.ts,stepwise = FALSE,approximation = FALSE)
+summary(modelosarima6) ###propuesta 
+residuals=resid(modelosarima6)
+adf.test(residuals) #si es ruido blanco, mejorpronostico sugerido
+coeftest(modelosarima6)
+forecast(modelosarima6,h=10)
+autoplot(acf(modelosarima6$residuals, plot = FALSE))
+autoplot(pacf(modelosarima6$residuals, plot = FALSE))
+ggseasonplot(masamonetariasola.ts,main="plot sarima ")
+tsdiag(modelosarima6)
+#Los p-valores para la prueba Q de Ljung-Box están por encima de 0,05, lo que indica "no significativo".
+#Realizamos el contraste de hipótesis:
+#H0: Los datos se distribuyen de forma independiente
+#H1: Los datos no se distribuyen de forma independiente
+independencia6 <- Box.test(modelosarima6$residuals, type="Ljung-Box") # Test de Ljung-Box
+independencia6$p.value
+#Efectivamente, los datos se distribuyen de forma independiente. P-valor = 0.53>0.05
+qqnorm(modelosarima6$residuals)
+qqline(modelosarima6$residuals) 
+#Gráficamente observamos que los datos siguen una distribución normal aunque en las colas los datos se alejan y se dispersan un poco, para una mayor seguridad comprobamos la normalidad mediante el test Shapiro Wilk:
+#H0:  Los datos se distribuyen normalmente
+#H1: Los datos no se distribuyen normalmente
+normalidad6 <-shapiro.test(modelosarima6$residuals)    # Test de Shapiro-Wilk
+normalidad6$p.value  
+#p valor 0.70>0.05 no rechazamos nuestra hipótesis nula, los residuos siguen una distribución normal.
+#Por lo tanto, damos el modelo por VÁLIDO
+prediccion1234567 <- forecast(modelosarima6, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion1234567)
 
 
 
-##############Se debe eliminar el componente estacio-nal de las series. Debido a que se está 
-#trabajando con datos mensuales, es muy probable que exis-ta un comportamiento repetitivo de 
-#las series en ciertos meses, esto genera un problema en la es-timación, por lo que es necesario 
-#aislar este com-ponente.  Existen  diversos  métodos,  uno  de  los  más conocidos es el método 
-#de promedio móvil
+
+##############DUDAS: 
+#1-QUE ES RESAGO
+#2-ES NECESARIO VOLVER ESTACIONARIA CADA VARIABLE, INCLUYENDO LA DEPENDIENTE?
+#3-CON PRUEBA DICKEY FULLER EL P VALOR ME INDICA ALGO Y CON NDIFFS EL CUAL ME INDICA CUANTAS
+#4-CUANTAS DIFERENCIAS HAY QUE HACER ME INDICA OTRA VUELTA, SIN EMBARGO AL HACER LAS VECES QUE ME
+#INDICA NDIFF ME VUELVE TODOS LOS PVALOR 0.01 INCLUSO MENOS
+##SEASON PLOT"GRAFICO DE COLORES"NO ENCUENTRO DE QUE FORMA ME INDICA CUAL ES ESTACIONARIA Y CUAL NO
+#CON LA TABLA NORMAL EN SERIES DE TIEMPO ME PUEDE DAR UNA IDEA DE ESTACIONARIEDAD SIN EMBARGO NO ES EFICIENTE
+#EN ARIMA NO ME QUEDA CLARO DE LA DIFERENCIA DE AUTORELACIÓN=MEDIAS MOVILES Y AUTORRELACIÓN PARCIAL=AUTOREGRESIVOS
+#LO UNICO QUE SE ES QUE DETERMINA EL (AUTOREGRESIVO,DIFERENCIAS Y MEDIAS MOVILES) DE LOS MODELOS
+#ts diag, zoo, necesario?
