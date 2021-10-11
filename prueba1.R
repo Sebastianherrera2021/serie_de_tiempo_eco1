@@ -155,8 +155,9 @@ plot(seriediferenciadeficit)
 seriediferenciamasamonetaria=diff(masamonetariasola.ts)
 plot(seriediferenciamasamonetaria)
 
+########
 ###Autocorrelación pero con serie estacionaria "lineas"
-acf(seriediferenciadaeconometriatabla)
+acf(seriediferenciadaeconometriatabla) 
 acf(seriediferenciadainflacion)
 acf(seriediferenciadasalario)
 acf(seriediferenciadagasto)
@@ -196,7 +197,7 @@ ndiffs(seriediferenciamasamonetaria2)
 #plot(seriediferenciadaeconometriatabla2)
 #acf(seriediferenciadaeconometriatabla2,main="Serie estacionaria")
 
-#individual
+#individual ##### MEDIAS MOVILES COMPONENTE REGULAR Y ESTACIONAL ACF Y PACF#########################################
 par(mfrow=c(2,2),mar=c(4,4,4,1)+ .1)
 plot(inflacionsola.ts, ylab=" inflación")
 acf(inflacionsola.ts,main="Serie no estacionaria")
@@ -247,7 +248,7 @@ adf.test(seriediferenciamasamonetaria2,alternative = "stationary")
 #Rechazamos H0, la serie temporal es estacionaria
 ####Las volvió todas 0.01 "Incluso menor"
 
-###Ahora si se puede hacer el arima "autocorrelación y autocorrelación parcial"
+###Ahora si se puede hacer el arima "autocorrelación y autocorrelación parcial"#############
 par(mfrow=c(2,1),mar=c(4,4,4,1)+ .1)
 acf(seriediferenciadainflacion) #autocorrelacion, numero de medias moviles "en este caso los que se salen de los puntos azules"
 pacf(seriediferenciadainflacion) #autocorrelacion parcial = #autoregresivos
@@ -296,7 +297,7 @@ pacf(ts(seriediferenciamasamonetaria2,frequency = 1))
 ###consisite en probar con varios modelos
 #7 MEDIAS MOVILES,5AUTOREGRESIVOS, 1 DIFERENCIA A OJO CON EL AUTOMATICO DA OTRA VUELTA
 modelo1=arima(inflacionsola.ts,order = c(2,1,0)) ###modelo de serie de tiempo orginal, no el 2
-modelo1
+modelo1   ####bota sigma cuadrado=varianza#######
 tsdiag(modelo1) #diagnostico
 
 
@@ -305,9 +306,9 @@ tsdiag(modelo1) #diagnostico
 #La función auto.arima de la librería forecast de R, proporciona una opción rápida para construir pronósticos
 #con series temporales, debido a que evalúa entre todos los posibles modelos, al mejor modelo considerando 
 #diversos criterios: estacionariedad, estacionalidad, diferencias, entre otras.
-modelos=auto.arima(inflacionsola.ts, seasonal=FALSE) ####otra manera de hacerlooooo
+modelos=auto.arima(inflacionsola.ts, seasonal=FALSE) ####otra manera de hacerlooooo, seriediferenciadainflacion; SOLO Cambia  (ARIMA(2,0,0) with zero mean ) el resto igual
 #INFLACIONSOLA.TS ó seriediferenciadainflacion cualquiera sirve, lo que cambia está en las "diferencias"
-modelos
+modelos  #################### AIC=70.05,AIC=70.15, BIC=80.63################################
 summary(modelos)
 modelos2=auto.arima(salariosolo.ts, seasonal=FALSE) ####otra manera de hacerlooooo
 modelos2
@@ -626,6 +627,65 @@ normalidad6$p.value
 prediccion1234567 <- forecast(modelosarima6, h=36) #nivel confianza 95%, h = periodos
 autoplot(prediccion1234567)
 
+##########Intento de razon de promedio movil######## suavizado
+#estacionaria con respecto a la media
+library(TTR)
+####diferenciada?
+
+?SMA
+
+par(mfrow=c(1,2),ylab("media movil de inflacion a corto y largo plazo"))
+mediamovilsimpleinfla=EMA(seriediferenciadainflacion,n=30)#media movil, n=periodo?
+plot(mediamovilsimpleinfla)
+mediamovilsimpleinfla2=EMA(seriediferenciadainflacion,100)
+plot(mediamovilsimpleinfla2)
+
+par(mfrow=c(1,2),ylab("media movil de salario a corto y largo plazo"))
+mediamovilsimplesalario=EMA(salariosolo.ts,n=30)#media movil, n=periodo?
+plot(mediamovilsimplesalario)
+mediamovilsimplesalario2=EMA(salariosolo.ts,n=100)#media movil, n=periodo?
+plot(mediamovilsimplesalario2)
+
+par(mfrow=c(1,2),ylab("media movil de gasto a corto y largo plazo"))
+mediamovilsimplegasto=EMA(gastosolo.ts,n=30)#media movil, n=periodo?
+plot(mediamovilsimplegasto)
+mediamovilsimplegasto2=EMA(gastosolo.ts,n=100)#media movil, n=periodo?
+plot(mediamovilsimplegasto2)
+
+
+par(mfrow=c(1,2),ylab("media movil de salario a corto y largo plazo"))
+mediamovilsimpletipodecambio=EMA(tipodecambiosolo.ts,n=30)#media movil, n=periodo?
+plot(mediamovilsimpletipodecambio)
+mediamovilsimpletipodecambio2=EMA(tipodecambiosolo.ts,n=100)#media movil, n=periodo?
+plot(mediamovilsimplesalario2)
+
+par(mfrow=c(1,2),title("media movil de deficit a corto y largo plazo"))
+mediamovilsimpledeficit=EMA(deficitsolo.ts,n=30)#media movil, n=periodo?
+plot(mediamovilsimpledeficit)
+mediamovilsimpledeficit2=EMA(deficitsolo.ts,n=100)#media movil, n=periodo?
+plot(mediamovilsimpledeficit2)
+
+
+par(mfrow=c(1,2),title("media movil de masa monetaria a corto y largo plazo"))
+mediamovilsimplemasa=EMA(masamonetariasola.ts,n=30)#media movil, n=periodo?
+plot(mediamovilsimplemasa)
+mediamovilsimplemasa2=EMA(masamonetariasola.ts,n=100)#media movil, n=periodo?
+plot(mediamovilsimplemasa2)
+
+####Cuando  se  usa  el  método  de  promedios  móviles  se  está  suponiendo  que  todas
+##las observaciones de la serie de tiempo son igualmente importantes para la estimación  
+##del  parámetro  a  pronosticar  (en  este  caso  los  ingresos).  De  esta  manera, se 
+##utiliza como pronóstico para el siguiente periodo el promedio de los n valores de los 
+#atos más recientes de la serie de tiempo (López, 2016).
+
+###varianza constante con respecto al tiempo homocedasticidad "falta"
+bartlett.test(inflacionsola.ts,salariosolo.ts,gastosolo.ts,tipodecambiosolo.ts,deficitsolo.ts,masamonetariasola.ts,data=econometriatabla.ts)
+#shi cuadrado, grados de libertad y p-value, 0.00000000000000022
+bartlett.test() #da lo mismo
+####con logaritmo en la transformacion se logra que la varianza sea más o menos constantes#########
+###diferencia regular para eliminar la tendencia "DIFERENCIACION"
+#####diferencia estacional para eliminar componente estacional
+
 
 
 
@@ -640,3 +700,7 @@ autoplot(prediccion1234567)
 #EN ARIMA NO ME QUEDA CLARO DE LA DIFERENCIA DE AUTORELACIÓN=MEDIAS MOVILES Y AUTORRELACIÓN PARCIAL=AUTOREGRESIVOS
 #LO UNICO QUE SE ES QUE DETERMINA EL (AUTOREGRESIVO,DIFERENCIAS Y MEDIAS MOVILES) DE LOS MODELOS
 #ts diag, zoo, necesario?
+#medias moviles simples va con variable diferenciada o en serie?
+
+
+
